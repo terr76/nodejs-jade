@@ -1,0 +1,25 @@
+{
+  "name": "beta.kibeomk.im",
+  "version": "1.0.0",
+  "description": "nodejs app test",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terr76/nodejs-jade.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/terr76/nodejs-jade/issues"
+  },
+  "homepage": "https://github.com/terr76/nodejs-jade#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "jade": "^1.11.0",
+    "underscore": "^1.8.3"
+  }
+}
