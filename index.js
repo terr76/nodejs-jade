@@ -7,7 +7,13 @@ app.locals.pretty = true;
 app.set('views', './views');
 app.set('view engine', 'jade');
 app.get('/topic/new', function(req, res){
-  res.render('new');
+  fs.readdir('data', function(err, files){
+    if(err){
+      console.log(err)
+      res.status(500).send('Internet Server Error');
+    }
+    res.render('new', {topics:files});    
+  });  
 })
 app.get(['/topic', '/topic/:id'], function(req,res){
   fs.readdir('data', function(err, files){
@@ -15,25 +21,22 @@ app.get(['/topic', '/topic/:id'], function(req,res){
       console.log(err)
       res.status(500).send('Internet Server Error');
     }
-    res.render('view', {topics:files});    
-  })
-})
-app.get('/topic/:id', function(req, res){
-  var id = req.params.id;
-  fs.readdir('data', function(err, files){
-    if(err){
-      console.log(err)
-      res.status(500).send('Internet Server Error');
+    var id = req.params.id;
+    if(id){
+      // if there is id
+      fs.readFile('data/' + id, 'utf-8', function(err, data){
+        if(err){
+          console.log(err);
+          res.status(500).send('Internet Server Error');      
+        }
+        res.render('view', {topics:files, title:id, description:data});
+      })    
+    } else {
+      // if there is no id
+      res.render('view', {topics:files, title:'Welcome', description:'Javascript for Server'});    
     }
-    fs.readFile('data/' + id, 'utf-8', function(err, data){
-      if(err){
-        console.log(err);
-        res.status(500).send('Internet Server Error');      
-      }
-      res.render('view', {topics:files, title:id, description:data});
-    })    
-  })
 
+  })
 })
 app.post('/topic', function(req, res){
   var title = req.body.title;
@@ -43,7 +46,7 @@ app.post('/topic', function(req, res){
       console.log(err);
       res.status(500).send('Internet Server Error');
     }
-    res.send('success');    
+    res.redirect('/topic/' + title);    
   })
 })
 
