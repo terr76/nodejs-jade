@@ -2,7 +2,7 @@ var express = require('express');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var bodyParser = require('body-parser');
-var md5 = require('md5');
+var sha256 = require('sha256');
 var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
@@ -44,7 +44,7 @@ app.post('/auth/login', function(req, res){
   var pwd = req.body.password;
   for(var i=0; i<users.length; i++){
     var user = users[i];
-    if(uname === user.username && md5(pwd+user.salt) === user.password){
+    if(uname === user.username && sha256(pwd+user.salt) === user.password){
       req.session.displayName = user.displayName;
       return req.session.save(function(){
         res.redirect('/welcome');
@@ -57,13 +57,13 @@ app.post('/auth/login', function(req, res){
 var users = [
   {
     username: 'kibeom',
-    password: 'be2b2976317bb18444a986620b793ed7',
+    password: '9d9ba50e49913583445c3aa7f9bf8fecd7d8f77de97ceca07d1d5632fef3ea65',
     salt: '!@#%@#$#@$21341',
     displayName:'Kibeom'
   },
   {
     username: 'lee',
-    password: 'c127ad10b57c28f46d3dfa05faf359a9',
+    password: 'c6db1712c9af7afda26798382fc18f8b306c50d312d600e5d344fa88cfceeec1',
     salt: '!@#%@#$#@$64646',
     displayName:'Mihyun'
   }  
