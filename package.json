@@ -23,8 +23,10 @@
     "express-mysql-session": "^1.2.0",
     "express-session": "^1.14.1",
     "jade": "^1.11.0",
+    "md5": "^2.2.1",
     "node-mysql": "^0.4.2",
     "session-file-store": "^0.2.2",
+    "sha256": "^0.2.0",
     "underscore": "^1.8.3"
   }
 }

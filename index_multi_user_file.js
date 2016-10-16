@@ -2,6 +2,7 @@ var express = require('express');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var bodyParser = require('body-parser');
+var md5 = require('md5');
 var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
@@ -38,13 +39,12 @@ app.get('/welcome', function(req, res){
     `);
   }
 });
-
 app.post('/auth/login', function(req, res){
   var uname = req.body.username;
   var pwd = req.body.password;
   for(var i=0; i<users.length; i++){
     var user = users[i];
-    if(uname === user.username && pwd === user.password){
+    if(uname === user.username && md5(pwd+user.salt) === user.password){
       req.session.displayName = user.displayName;
       return req.session.save(function(){
         res.redirect('/welcome');
@@ -53,12 +53,20 @@ app.post('/auth/login', function(req, res){
   }
   res.send('Who are you? <a href="/auth/login">login</a>');
 });
+
 var users = [
   {
     username: 'kibeom',
-    password: '4444',
+    password: 'be2b2976317bb18444a986620b793ed7',
+    salt: '!@#%@#$#@$21341',
     displayName:'Kibeom'
-  }
+  },
+  {
+    username: 'lee',
+    password: 'c127ad10b57c28f46d3dfa05faf359a9',
+    salt: '!@#%@#$#@$64646',
+    displayName:'Mihyun'
+  }  
 ];
 app.post('/auth/register', function(req, res){
   var user = {
