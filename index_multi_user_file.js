@@ -2,7 +2,9 @@ var express = require('express');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var bodyParser = require('body-parser');
-var sha256 = require('sha256');
+var bkfd2Password = require('pbkdf2-password');
+var hasher = bkfd2Password();
+
 var app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(session({
@@ -44,12 +46,24 @@ app.post('/auth/login', function(req, res){
   var pwd = req.body.password;
   for(var i=0; i<users.length; i++){
     var user = users[i];
-    if(uname === user.username && sha256(pwd+user.salt) === user.password){
-      req.session.displayName = user.displayName;
-      return req.session.save(function(){
-        res.redirect('/welcome');
-      })
-    } 
+    if(uname === user.username){
+      return hasher({password:pwd, salt:user.salt}, function(err, pass, salt, hash){
+        if(hash === user.password){
+          req.session.displayName = user.displayName;
+          req.session.save(function(){
+            res.redirect('/welcome');
+          });
+        } else {
+          res.send('Who are you? <a href="/auth/login">login</a>');
+        }
+      });
+    }
+    // if(uname === user.username && sha256(pwd+user.salt) === user.password){
+    //   req.session.displayName = user.displayName;
+    //   return req.session.save(function(){
+    //     res.redirect('/welcome');
+    //   })
+    // } 
   }
   res.send('Who are you? <a href="/auth/login">login</a>');
 });
@@ -57,16 +71,10 @@ app.post('/auth/login', function(req, res){
 var users = [
   {
     username: 'kibeom',
-    password: '9d9ba50e49913583445c3aa7f9bf8fecd7d8f77de97ceca07d1d5632fef3ea65',
-    salt: '!@#%@#$#@$21341',
+    password: '6cB8DTCa4wod5NsAg0mRU4jRFSOd321AZAmqAGoiyShHG71EXy6cS/tllJncuiYbIdOH39vTbD9d57boAZNzYT5RC2/8TVdQJHchGKxRDl8P5UzabFfx5310kqhvv0zNiNnY9/ZacdamNWmE0YOuPoN2DjP+oib4I8GmQolUnnQ=',
+    salt: 'B1z6wVBW4dPv42iCC52Uhpr7XeOoWPPOtgtIJle/KTPGkAC3I249e0QIY+XkLhTAP8HVXEbDawX+tds6Li/6ig==',
     displayName:'Kibeom'
-  },
-  {
-    username: 'lee',
-    password: 'c6db1712c9af7afda26798382fc18f8b306c50d312d600e5d344fa88cfceeec1',
-    salt: '!@#%@#$#@$64646',
-    displayName:'Mihyun'
-  }  
+  }
 ];
 app.post('/auth/register', function(req, res){
   var user = {
