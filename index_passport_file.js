@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var bkfd2Password = require('pbkdf2-password');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
 var hasher = bkfd2Password();
 
 var app = express();
@@ -49,16 +50,17 @@ app.get('/welcome', function(req, res){
 });
 passport.serializeUser(function(user, done){
   console.log('serializeUser', user);
-  done(null, user.username);
+  done(null, user.authId);
 });
 passport.deserializeUser(function(id, done){
   console.log('deserializeUser', id)
   for(var i=0; i<users.length; i++){
     var user = users[i];
-    if(user.username === id){
+    if(user.authId === id){
       return done(null, user);
     }
   }
+  done('There is no user.');
 });
 passport.use(new LocalStrategy(
   function(username, password, done){
@@ -80,14 +82,45 @@ passport.use(new LocalStrategy(
     done(null, false);
   }
 ));
+passport.use(new FacebookStrategy({
+    clientID: FACEBOOK_APP_ID, 
+    clientSecret: FACEBOOK_APP_SECRET,
+    callbackURL: "http://www.example.com/auth/facebook/callback",
+    profileFields:['id','email','gender','link','locale','name','timezone','updated_time','verified','displayName']
+  },
+  function(accessToken, refreshToken, profile, done) {
+    console.log(profile);
+    var authId = 'facebook: '+profile.id;
+    for(var i=0; i<users.length; i++){
+      var user = users[i];
+      if(user.authId === authId){
+        return done(null, user);
+      }
+    }
+    var newuser = {
+      'authId':authId,
+      'displayName':profile.displayName,
+      'email':profile.emails[0].value
+    }
+    users.push(newuser);
+    done(null, newuser);
+  }
+));
 app.post('/auth/login', passport.authenticate('local', {
   successRedirect: '/welcome', 
   failureRedirect: '/auth/login', 
   failureFlash: false
 }));
-
+app.get('/auth/facebook', passport.authenticate('facebook',{
+  scope:'email'
+}));
+app.get('/auth/facebook/callback', passport.authenticate('facebook', { 
+  successRedirect: '/welcome',
+  failureRedirect: '/auth/login' 
+}));
 var users = [
   {
+    authId:'local:kibeom',
     username: 'kibeom',
     password: '6cB8DTCa4wod5NsAg0mRU4jRFSOd321AZAmqAGoiyShHG71EXy6cS/tllJncuiYbIdOH39vTbD9d57boAZNzYT5RC2/8TVdQJHchGKxRDl8P5UzabFfx5310kqhvv0zNiNnY9/ZacdamNWmE0YOuPoN2DjP+oib4I8GmQolUnnQ=',
     salt: 'B1z6wVBW4dPv42iCC52Uhpr7XeOoWPPOtgtIJle/KTPGkAC3I249e0QIY+XkLhTAP8HVXEbDawX+tds6Li/6ig==',
@@ -97,6 +130,7 @@ var users = [
 app.post('/auth/register', function(req, res){
   hasher({password:req.body.password}, function(err, pass, salt, hash){
     var user = {
+      authId:'local:'+req.body.username,
       username:req.body.username,
       password:hash,
       salt:salt,
@@ -144,6 +178,7 @@ app.get('/auth/login', function(req, res){
       <input type="submit">
     </p>
   </form>
+  <a href="/auth/facebook">Facebook</a>
   `;
   res.send(output);
 });
