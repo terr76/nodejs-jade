@@ -14,9 +14,9 @@ var fs = require('fs');
 var mysql = require('mysql');
 var conn = mysql.createConnection({
   host     : 'localhost',
-  user     : 'betakibe_os2',
-  password : 'I23h{s3gWKoN',
-  database : 'betakibe_os2'
+  user     : 'root',
+  password : 'root',
+  database : 'o2'
 });
 conn.connect();
 var app = express();
